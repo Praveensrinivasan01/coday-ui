@@ -13,9 +13,10 @@ export default function LanguageSelector({ value, onChange }) {
         marginTop: "8px"
       }}
     >
-      <option value="en">English</option>
-      <option value="hi">Hindi</option>
-      <option value="es">Spanish</option>
+      <option value="javascript">Javascript</option>
+      <option value="java">Java</option>
+      <option value="python">Python</option>
+      <option value="nodejs">Node Js</option>
     </select>
   )
 }

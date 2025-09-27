@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "baseUrl": "."
+  },
+  "include": [
+    ".plasmo/index.d.ts",
+    "src"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

@@ -15,40 +15,54 @@ export default function Onboarding() {
 
   const navigate = useNavigate()
 
-  // Load saved data from chrome storage on mount
+  // Safe wrapper: use chrome.storage if available, otherwise fallback to localStorage
+  const safeGet = (keys) => {
+    return new Promise((resolve) => {
+      if (chrome?.storage?.local) {
+        chrome.storage.local.get(keys, resolve)
+      } else {
+        // fallback: pull values from localStorage
+        const res = {}
+        keys.forEach((k) => {
+          res[k] = localStorage.getItem(k) || ""
+        })
+        resolve(res)
+      }
+    })
+  }
+
+  const safeSet = (obj) => {
+    if (chrome?.storage?.local) {
+      chrome.storage.local.set(obj)
+    } else {
+      // fallback: save in localStorage
+      Object.entries(obj).forEach(([k, v]) => {
+        localStorage.setItem(k, v)
+      })
+    }
+  }
+
+  // Load saved data on mount
   useEffect(() => {
     const fetchData = async () => {
-      const res = await new Promise((resolve) =>
-        chrome.storage.local.get(
-          ["language", "day", "time", "recapDay"],
-          resolve
-        )
-      )
-
+      const res = await safeGet(["language", "day", "time", "recapDay"])
       if (res.language) setLanguage(res.language)
       if (res.day) setSelectedDay(res.day)
       if (res.time) setSelectedTime(res.time)
       if (res.recapDay) setRecapDay(res.recapDay)
     }
-
     fetchData()
   }, [])
 
-  const saveData = (key, value) => {
-    chrome.storage.local.set({ [key]: value })
-  }
+  const saveData = (key, value) => safeSet({ [key]: value })
 
   const nextStep = () => setStep((prev) => prev + 1)
   const prevStep = () => setStep((prev) => prev - 1)
 
   const handleFinish = () => {
     // final save
-    chrome.storage.local.set(
-      { language, day: selectedDay, time: selectedTime, recapDay },
-      () => {
-        navigate("/quiz") // move to Quiz page
-      }
-    )
+    safeSet({ language, day: selectedDay, time: selectedTime, recapDay })
+    navigate("/quiz") // move to Quiz page
   }
 
   return (

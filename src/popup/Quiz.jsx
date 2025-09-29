@@ -3,6 +3,7 @@ import { useSelector } from "react-redux"
 
 import QuizCard from "../components/QuizCard"
 import StepNav from "../components/StepNav"
+import ShowUpgrade from "src/components/ShowUpgrade"
 
 const questions = [
   {
@@ -11,12 +12,12 @@ const questions = [
     answer: "4",
     reason: "Because 2 added to 2 equals 4."
   },
-  {
-    q: "What is the capital of France?",
-    opts: ["Paris", "London", "Berlin"],
-    answer: "Paris",
-    reason: "Paris is the official capital city of France."
-  }
+  // {
+  //   q: "What is the capital of France?",
+  //   opts: ["Paris", "London", "Berlin"],
+  //   answer: "Paris",
+  //   reason: "Paris is the official capital city of France."
+  // }
 ]
 
 const quote = {
@@ -27,11 +28,25 @@ const quote = {
   type: "meme"
 }
 
+{
+  // monday: {
+  //   isCompleted: true,
+  //   isStarted: true,
+  //   noOfQs:4,
+  //   correctAnswer:[1,2,4],
+  //   wrongAnswer:[3],
+  //   questions:[], 
+  // }
+}
+
 export default function Quiz({ onNext }) {
   const [step, setStep] = useState(1)
   const [score, setScore] = useState(0)
   const [feedback, setFeedback] = useState(null)
   const [isCompletedQuiz, setIsCompletedQuiz] = useState(false)
+
+  //monday,isCompleted - chrome.local.storage;
+  //
   const tierInfo = useSelector((state) => state.tier)
 
   console.log("tierInfo", tierInfo)
@@ -103,14 +118,15 @@ export default function Quiz({ onNext }) {
         </>
       ) : (
         <>
-          <div>Score Card</div>
+        <ShowUpgrade/>
+          {/* <div>Score Card</div>
           <img
             src={quote.gif}
             alt="Description of image"
             height={200}
             width="100%"
           />
-          {quote.type ? quote.quote : quote.meme}
+          {quote.type ? quote.quote : quote.meme} */}
         </>
       )}
     </div>

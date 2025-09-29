@@ -1,0 +1,70 @@
+{
+  "date":"29/09/2025-05/10/2025",
+  "recap": {
+    "monday": {
+      "isCompleted": true,
+      "isStarted": true,
+      "noOfQs": 4,
+      "correctAnswer": [1, 2],
+      "wrongAnswer": [],
+      "questions": [
+        {
+          "q": "What is 2 + 2?",
+          "opts": ["3", "4", "5"],
+          "answer": "4",
+          "reason": "Because 2 added to 2 equals 4."
+        },
+        {
+          "q": "What is the capital of France?",
+          "opts": ["Paris", "London", "Berlin"],
+          "answer": "Paris",
+          "reason": "Paris is the official capital city of France."
+        }
+      ]
+    },
+    "tuesday": {
+      "isCompleted": false,
+      "isStarted": true,
+      "noOfQs": 4,
+      "correctAnswer": [1],
+      "wrongAnswer": [2],
+      "questions": [
+        {
+          "q": "What is 2 + 2?",
+          "opts": ["3", "4", "5"],
+          "answer": "4",
+          "reason": "Because 2 added to 2 equals 4."
+        },
+        {
+          "q": "What is the capital of France?",
+          "opts": ["Paris", "London", "Berlin"],
+          "answer": "Paris",
+          "reason": "Paris is the official capital city of France."
+        }
+      ]
+    },
+    "wednesday": {
+      "isCompleted": false,
+      "isStarted": false,
+      "noOfQs": 4,
+      "correctAnswer": [],
+      "wrongAnswer": [],
+      "questions": [
+        {
+          "q": "What is 2 + 2?",
+          "opts": ["3", "4", "5"],
+          "answer": "4",
+          "reason": "Because 2 added to 2 equals 4."
+        },
+        {
+          "q": "What is the capital of France?",
+          "opts": ["Paris", "London", "Berlin"],
+          "answer": "Paris",
+          "reason": "Paris is the official capital city of France."
+        }
+      ]
+    },
+    "thursday":null,
+    "friday":null
+  }
+}

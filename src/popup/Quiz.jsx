@@ -1,9 +1,11 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
+import ShowUpgrade from "src/components/ShowUpgrade"
 
 import QuizCard from "../components/QuizCard"
 import StepNav from "../components/StepNav"
-import ShowUpgrade from "src/components/ShowUpgrade"
+import { getWeekRange,getTodayKey } from "../utils/date"
+import { loadData, saveData } from "../utils/storage"
 
 const questions = [
   {
@@ -12,12 +14,18 @@ const questions = [
     answer: "4",
     reason: "Because 2 added to 2 equals 4."
   },
-  // {
-  //   q: "What is the capital of France?",
-  //   opts: ["Paris", "London", "Berlin"],
-  //   answer: "Paris",
-  //   reason: "Paris is the official capital city of France."
-  // }
+  {
+    q: "What is the capital of France?",
+    opts: ["Paris", "London", "Berlin"],
+    answer: "Paris",
+    reason: "Paris is the official capital city of France."
+  },
+  {
+    q: "What is the capital of France?",
+    opts: ["Paris", "London", "Berlin"],
+    answer: "Paris",
+    reason: "Paris is the official capital city of France."
+  }
 ]
 
 const quote = {
@@ -35,7 +43,7 @@ const quote = {
   //   noOfQs:4,
   //   correctAnswer:[1,2,4],
   //   wrongAnswer:[3],
-  //   questions:[], 
+  //   questions:[],
   // }
 }
 
@@ -43,34 +51,142 @@ export default function Quiz({ onNext }) {
   const [step, setStep] = useState(1)
   const [score, setScore] = useState(0)
   const [feedback, setFeedback] = useState(null)
+  const [answers, setAnswers] = useState({})
   const [isCompletedQuiz, setIsCompletedQuiz] = useState(false)
+const [userAnswers, setUserAnswers] = useState({});
+
 
   //monday,isCompleted - chrome.local.storage;
   //
   const tierInfo = useSelector((state) => state.tier)
 
   console.log("tierInfo", tierInfo)
+  
+useEffect(() => {
+  (async () => {
+    const saved = await loadData("quizData");
+    if (saved) {
+      const dayKey = getTodayKey();
+      const savedDay = saved.recap?.[dayKey];
+      if (savedDay?.answers) {
+        setUserAnswers(savedDay.answers);
 
-  const handleAnswer = (opt) => {
-    const isCorrect = opt === questions[step - 1].answer
-    if (isCorrect) {
-      setScore(score + 1)
+        // restore feedback if user already answered current step
+        if (savedDay.answers[step]) {
+          setFeedback(savedDay.answers[step]);
+        }
+      }
     }
-    setFeedback({
+  })();
+}, []);
+
+
+const handleAnswer = async (opt) => {
+   const isCorrect = opt === questions[step - 1].answer;
+
+  setScore((prev) => (isCorrect ? prev + 1 : prev));
+
+  setFeedback({
+    isCorrect,
+    selectedAnswer: opt,
+    correctAnswer: questions[step - 1].answer,
+    reason: questions[step - 1].reason,
+  });
+
+
+  setUserAnswers((prev) => ({
+  ...prev,
+  [step]: {
+    selected: opt,
+    isCorrect,
+    correctAnswer: questions[step - 1].answer,
+    reason: questions[step - 1].reason,
+  },
+}));
+
+
+  const prevData =await loadData("quizData") || {};
+  const weekRange = getWeekRange();
+  const dayKey = getTodayKey();
+
+  const prevDay = prevData?.recap?.[dayKey] || {
+    isCompleted: false,
+    isStarted: true,
+    noOfQs: questions.length,
+    answers: {}, // 🔥 store all here
+    questions,
+  };
+debugger
+  const answers = {
+    ...prevDay.answers,
+    [step]: {
+      selected: opt,
       isCorrect,
       correctAnswer: questions[step - 1].answer,
-      reason: questions[step - 1].reason
-    })
+      reason: questions[step - 1].reason,
+    },
+  };
+
+  const quizData = {
+    date: weekRange,
+    recap: {
+      ...prevData.recap,
+      [dayKey]: {
+        ...prevDay,
+        answers,
+      },
+    },
+  };
+
+  saveData("quizData", quizData);
+
+};
+
+
+const goNext = () => {
+  if (step < questions.length) {
+    const nextStep = step + 1;
+    setStep(nextStep);
+    setFeedback(userAnswers[nextStep] || null); // restore feedback
+  } else {
+    setIsCompletedQuiz(true);
+  }
+};
+
+function goPrev() {
+  if (step > 1) {
+    const prevStep = step - 1;
+    setStep(prevStep);
+    setFeedback(userAnswers[prevStep] || null); // restore feedback
+  }
+}
+
+
+  function Prev() {
+  let condition=tierInfo.tier!="free"
+  console.warn(condition)
+    return (
+      condition&&(step-1)>0&&<>
+        <button
+          onClick={goPrev}
+          style={{
+            marginTop: "8px",
+            marginLeft:"3px",
+            padding: "8px 16px",
+            background: "#C1856D",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer"
+          }}>
+          {step == questions.length ? "Complete the quiz" : "Next"}
+        </button>
+      </>
+    )
   }
 
-  const goNext = () => {
-    if (step < questions.length) {
-      setStep(step + 1)
-      setFeedback(null)
-    } else {
-      setIsCompletedQuiz(true)
-    }
-  }
+
+  console.log(feedback,userAnswers)
 
   return (
     <div>
@@ -81,6 +197,8 @@ export default function Quiz({ onNext }) {
             options={questions[step - 1].opts}
             onAnswer={handleAnswer}
             disabled={!!feedback} // prevent multiple clicks after answering
+            selectedAnswer={feedback?.selectedAnswer}
+            correctAnswer={questions[step - 1].answer}
           />
           {feedback && (
             <div
@@ -112,13 +230,15 @@ export default function Quiz({ onNext }) {
                 }}>
                 {step == questions.length ? "Complete the quiz" : "Next"}
               </button>
+              {Prev()}
             </div>
           )}
           <StepNav current={step} total={questions.length} />
+
         </>
       ) : (
         <>
-        <ShowUpgrade/>
+          <ShowUpgrade />
           {/* <div>Score Card</div>
           <img
             src={quote.gif}

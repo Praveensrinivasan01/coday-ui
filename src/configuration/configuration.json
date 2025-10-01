@@ -20,7 +20,10 @@
         "notification":false,
         "settings":true,
         "language":false,
-        "skillset":3
+        "skillset":3,
+        "levels":["Beginner", "Intermediate", "Advanced"],
+        "times":["9-5","2-11"],
+        "quizDays":["Weekdays"]
     },
      "basic":{
         "prev":false,
@@ -43,7 +46,10 @@
         "notification":true,
         "settings":true,
         "language":false,
-        "skillset":5
+        "skillset":5,
+        "levels":["Beginner", "Intermediate", "Advanced"],
+        "times":["9-5","2-11"],
+        "quizDays":["Weekdays"]
     },
      "premium":{
         "prev":true,
@@ -66,6 +72,9 @@
         "notification":true,
         "settings":true,
         "language":true,
-        "skillset":10
+        "skillset":10,
+        "levels":["Beginner", "Intermediate", "Advanced"],
+        "times":["9-5","2-11"],
+        "quizDays":["Weekdays"]
     }
 }

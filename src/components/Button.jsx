@@ -1,9 +1,15 @@
 import React from "react"
 
-export default function Button({ children, onClick }) {
+export default function Button({ children, onClick ,disabled }) {
   return (
     <button
-      onClick={onClick}
+      type="button"  
+      disabled={disabled} // 👈 this ensures it won’t submit or reload
+      onClick={(e) => {
+        e.preventDefault(); // 👈 prevents default form behavior
+        e.stopPropagation(); // 👈 stops bubbling that could close popup
+        onClick?.(e);
+      }}
       style={{
         padding: "8px 16px",
         marginTop: "12px",

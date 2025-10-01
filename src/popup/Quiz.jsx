@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
-import ShowUpgrade from "src/components/ShowUpgrade"
-
 import QuizCard from "../components/QuizCard"
 import StepNav from "../components/StepNav"
-import { getWeekRange,getTodayKey } from "../utils/date"
+import { getTodayKey, getWeekRange } from "../utils/date"
 import { loadData, saveData } from "../utils/storage"
 
 const questions = [
@@ -36,6 +34,8 @@ const quote = {
   type: "meme"
 }
 
+
+
 {
   // monday: {
   //   isCompleted: true,
@@ -47,146 +47,140 @@ const quote = {
   // }
 }
 
-export default function Quiz({ onNext }) {
+export default function Quiz() {
   const [step, setStep] = useState(1)
   const [score, setScore] = useState(0)
   const [feedback, setFeedback] = useState(null)
   const [answers, setAnswers] = useState({})
   const [isCompletedQuiz, setIsCompletedQuiz] = useState(false)
-const [userAnswers, setUserAnswers] = useState({});
-
+  const [userAnswers, setUserAnswers] = useState({})
+  const {
+  plans: { previous }
+} = useSelector((state) => state.plan)
 
   //monday,isCompleted - chrome.local.storage;
   //
-  const tierInfo = useSelector((state) => state.tier)
+  // const tierInfo = useSelector((state) => state.tier)
 
-  console.log("tierInfo", tierInfo)
-  
-useEffect(() => {
-  (async () => {
-    const saved = await loadData("quizData");
-    if (saved) {
-      const dayKey = getTodayKey();
-      const savedDay = saved.recap?.[dayKey];
-      if (savedDay?.answers) {
-        setUserAnswers(savedDay.answers);
+  useEffect(() => {
+    ;(async () => {
+      const saved = await loadData("quizData")
+      if (saved) {
+        const dayKey = getTodayKey()
+        const savedDay = saved.recap?.[dayKey]
+        if (savedDay?.answers) {
+          setUserAnswers(savedDay.answers)
 
-        // restore feedback if user already answered current step
-        if (savedDay.answers[step]) {
-          setFeedback(savedDay.answers[step]);
+          // restore feedback if user already answered current step
+          if (savedDay.answers[step]) {
+            setFeedback(savedDay.answers[step])
+          }
+        }
+      }
+    })()
+  }, [])
+
+  const handleAnswer = async (opt) => {
+    const isCorrect = opt === questions[step - 1].answer
+
+    setScore((prev) => (isCorrect ? prev + 1 : prev))
+
+    setFeedback({
+      isCorrect,
+      selectedAnswer: opt,
+      correctAnswer: questions[step - 1].answer,
+      reason: questions[step - 1].reason
+    })
+
+    setUserAnswers((prev) => ({
+      ...prev,
+      [step]: {
+        selected: opt,
+        isCorrect,
+        correctAnswer: questions[step - 1].answer,
+        reason: questions[step - 1].reason
+      }
+    }))
+
+    const prevData = (await loadData("quizData")) || {}
+    const weekRange = getWeekRange()
+    const dayKey = getTodayKey()
+
+    const prevDay = prevData?.recap?.[dayKey] || {
+      isCompleted: false,
+      isStarted: true,
+      noOfQs: questions.length,
+      answers: {}, // 🔥 store all here
+      questions
+    }
+    // debugger
+    const answers = {
+      ...prevDay.answers,
+      [step]: {
+        selected: opt,
+        isCorrect,
+        correctAnswer: questions[step - 1].answer,
+        reason: questions[step - 1].reason
+      }
+    }
+
+    const quizData = {
+      date: weekRange,
+      recap: {
+        ...prevData.recap,
+        [dayKey]: {
+          ...prevDay,
+          answers
         }
       }
     }
-  })();
-}, []);
 
-
-const handleAnswer = async (opt) => {
-   const isCorrect = opt === questions[step - 1].answer;
-
-  setScore((prev) => (isCorrect ? prev + 1 : prev));
-
-  setFeedback({
-    isCorrect,
-    selectedAnswer: opt,
-    correctAnswer: questions[step - 1].answer,
-    reason: questions[step - 1].reason,
-  });
-
-
-  setUserAnswers((prev) => ({
-  ...prev,
-  [step]: {
-    selected: opt,
-    isCorrect,
-    correctAnswer: questions[step - 1].answer,
-    reason: questions[step - 1].reason,
-  },
-}));
-
-
-  const prevData =await loadData("quizData") || {};
-  const weekRange = getWeekRange();
-  const dayKey = getTodayKey();
-
-  const prevDay = prevData?.recap?.[dayKey] || {
-    isCompleted: false,
-    isStarted: true,
-    noOfQs: questions.length,
-    answers: {}, // 🔥 store all here
-    questions,
-  };
-debugger
-  const answers = {
-    ...prevDay.answers,
-    [step]: {
-      selected: opt,
-      isCorrect,
-      correctAnswer: questions[step - 1].answer,
-      reason: questions[step - 1].reason,
-    },
-  };
-
-  const quizData = {
-    date: weekRange,
-    recap: {
-      ...prevData.recap,
-      [dayKey]: {
-        ...prevDay,
-        answers,
-      },
-    },
-  };
-
-  saveData("quizData", quizData);
-
-};
-
-
-const goNext = () => {
-  if (step < questions.length) {
-    const nextStep = step + 1;
-    setStep(nextStep);
-    setFeedback(userAnswers[nextStep] || null); // restore feedback
-  } else {
-    setIsCompletedQuiz(true);
+    saveData("quizData", quizData)
   }
-};
 
-function goPrev() {
-  if (step > 1) {
-    const prevStep = step - 1;
-    setStep(prevStep);
-    setFeedback(userAnswers[prevStep] || null); // restore feedback
+  const goNext = () => {
+    if (step < questions.length) {
+      const nextStep = step + 1
+      setStep(nextStep)
+      setFeedback(userAnswers[nextStep] || null) // restore feedback
+    } else {
+      setIsCompletedQuiz(true)
+    }
   }
-}
 
+  function goPrev() {
+    if (step > 1) {
+      const prevStep = step - 1
+      setStep(prevStep)
+      setFeedback(userAnswers[prevStep] || null) // restore feedback
+    }
+  }
 
   function Prev() {
-  let condition=tierInfo.tier!="free"
-  console.warn(condition)
     return (
-      condition&&(step-1)>0&&<>
-        <button
-          onClick={goPrev}
-          style={{
-            marginTop: "8px",
-            marginLeft:"3px",
-            padding: "8px 16px",
-            background: "#C1856D",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer"
-          }}>
-          {step == questions.length ? "Complete the quiz" : "Next"}
-        </button>
-      </>
+      previous &&
+      step - 1 > 0 && (
+        <>
+          <button
+            onClick={goPrev}
+            style={{
+              marginTop: "8px",
+              marginLeft: "3px",
+              padding: "8px 16px",
+              background: "#C1856D",
+              color: "white",
+              border: "none",
+              borderRadius: "4px",
+              cursor: "pointer"
+            }}>
+            {step == questions.length ? "Complete the quiz" : "Next"}
+          </button>
+        </>
+      )
     )
   }
 
-
-  console.log(feedback,userAnswers)
+  // console.log(feedback, userAnswers)
 
   return (
     <div>
@@ -216,7 +210,6 @@ function goPrev() {
               <p>
                 <em>Reason: {feedback.reason}</em>
               </p>
-
               <button
                 onClick={goNext}
                 style={{
@@ -230,23 +223,27 @@ function goPrev() {
                 }}>
                 {step == questions.length ? "Complete the quiz" : "Next"}
               </button>
-              {Prev()}
+              {/* {Prev()} */}
             </div>
           )}
+          {
+            <>
+              
+            </>
+          }
           <StepNav current={step} total={questions.length} />
-
         </>
       ) : (
         <>
-          <ShowUpgrade />
-          {/* <div>Score Card</div>
+          {/* <ShowUpgrade /> */}
+          <div>Score Card</div>
           <img
             src={quote.gif}
             alt="Description of image"
             height={200}
             width="100%"
           />
-          {quote.type ? quote.quote : quote.meme} */}
+          {quote.type ? quote.quote : quote.meme}
         </>
       )}
     </div>

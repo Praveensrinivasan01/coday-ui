@@ -1,89 +1,82 @@
 // src/popup/Onboarding.jsx
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
-import ReactSelect from "../components/ReactSelect";
-import DateTimeSelector from "../components/DateTime";
-import developerLanguages from "../configuration/devlanguages.json";
+import React, { useEffect, useState } from "react"
+import { useSelector } from "react-redux"
+import { useNavigate } from "react-router-dom"
 
+import DateTimeSelector from "../components/DateTime"
+import ReactSelect from "../components/ReactSelect"
+import developerLanguages from "../configuration/devlanguages.json"
 
 export default function Onboarding() {
-  const navigate = useNavigate();
-  const { plans:{quizDays,days,times,levels,skillset}} = useSelector((state)=>state.plan);
-  const [stepIndex, setStepIndex] = useState(0);
-  const [languages, setLanguages] = useState(developerLanguages);
+  const navigate = useNavigate()
+  const {
+    plans: { quizDays, days, times, levels, skillset }
+  } = useSelector((state) => state.plan)
+
+  const [stepIndex, setStepIndex] = useState(0)
+  const [languages, setLanguages] = useState(developerLanguages)
   const [formData, setFormData] = useState({
     languages: [],
     level: "",
     day: "",
     time: "",
-    recapDay: "",
-  });
+    recapDay: ""
+  })
 
   // Safe storage wrapper
   const safeGet = (keys) =>
     new Promise((resolve) => {
       if (chrome?.storage?.local) {
-        chrome.storage.local.get(keys, resolve);
+        chrome.storage.local.get(keys, resolve)
       } else {
-        const res = {};
+        const res = {}
         keys.forEach((k) => {
-          const val = localStorage.getItem(k);
-          res[k] = val ? JSON.parse(val) : null;
-        });
-        resolve(res);
+          const val = localStorage.getItem(k)
+          res[k] = val ? JSON.parse(val) : null
+        })
+        resolve(res)
       }
-    });
+    })
 
   const safeSet = (obj) => {
     if (chrome?.storage?.local) {
-      chrome.storage.local.set(obj);
+      chrome.storage.local.set(obj)
     } else {
       Object.entries(obj).forEach(([k, v]) => {
-        localStorage.setItem(k, JSON.stringify(v));
-      });
+        localStorage.setItem(k, JSON.stringify(v))
+      })
     }
-  };
+  }
 
   // Load saved data
   useEffect(() => {
     const fetchData = async () => {
-      const res = await safeGet(["languages", "level", "day", "time", "recapDay"]);
+      const res = await safeGet([
+        "languages",
+        "level",
+        "day",
+        "time",
+        "recapDay"
+      ])
       setFormData((prev) => ({
         ...prev,
         languages: res.languages || [],
         level: res.level || "",
         day: res.day || "",
         time: res.time || "",
-        recapDay: res.recapDay || "",
-      }));
-    };
-    fetchData();
-  }, []);
+        recapDay: res.recapDay || ""
+      }))
+    }
+    fetchData()
+  }, [])
 
-  // Optional: fetch languages from API
-  // useEffect(() => {
-  //   const fetchLanguages = async () => {
-  //     try {
-  //       const res = await fetch("/api/developer-languages");
-  //       const data = await res.json();
-  //       if (Array.isArray(data) && data.length > 0) {
-  //         setLanguages([...new Set([...developerLanguages, ...data])]);
-  //       }
-  //     } catch (err) {
-  //       console.error("API fetch failed, using static JSON", err);
-  //     }
-  //   };
-  //   fetchLanguages();
-  // }, []);
-
-  const nextStep = () => setStepIndex((prev) => Math.min(prev + 1, 3));
-  const prevStep = () => setStepIndex((prev) => Math.max(prev - 1, 0));
+  const nextStep = () => setStepIndex((prev) => Math.min(prev + 1, steps.length - 1))
+  const prevStep = () => setStepIndex((prev) => Math.max(prev - 1, 0))
 
   const handleChange = (key, value) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-    safeSet({ [key]: value });
-  };
+    setFormData((prev) => ({ ...prev, [key]: value }))
+    safeSet({ [key]: value })
+  }
 
   const steps = [
     {
@@ -98,26 +91,9 @@ export default function Onboarding() {
             placeholder="Select developer languages..."
             maxSelect={skillset}
           />
-          {/* <div style={{ marginTop: "10px", display: "flex", flexWrap: "wrap" }}>
-            {formData.languages.map((lang) => (
-              <span
-                key={lang}
-                style={{
-                  display: "inline-block",
-                  padding: "5px 10px",
-                  margin: "4px",
-                  background: "lightblue",
-                  borderRadius: "8px",
-                  fontSize: "0.9rem",
-                }}
-              >
-                {lang}
-              </span>
-            ))}
-          </div> */}
         </div>
       ),
-      isValid: formData.languages.length > 0,
+      isValid: formData.languages.length > 0
     },
     {
       key: "level",
@@ -129,16 +105,15 @@ export default function Onboarding() {
               key={lvl}
               style={{
                 margin: 4,
-                background: formData.level === lvl ? "lightblue" : "white",
+                background: formData.level === lvl ? "lightblue" : "white"
               }}
-              onClick={() => handleChange("level", lvl)}
-            >
+              onClick={() => handleChange("level", lvl)}>
               {lvl}
             </button>
           ))}
         </div>
       ),
-      isValid: formData.level !== "",
+      isValid: formData.level !== ""
     },
     {
       key: "dayTime",
@@ -153,7 +128,8 @@ export default function Onboarding() {
           onChange={handleChange}
         />
       ),
-      isValid: formData.day !== "" && formData.time !== "" && formData.recapDay !== "",
+      isValid:
+        formData.day !== "" && formData.time !== "" && formData.recapDay !== ""
     },
     {
       key: "review",
@@ -177,37 +153,42 @@ export default function Onboarding() {
           </p>
         </div>
       ),
-      isValid: true,
-    },
-  ];
+      isValid: true
+    }
+  ]
 
   return (
     <div style={{ padding: "16px" }}>
+      {/* Step Content */}
       {steps[stepIndex].render}
 
+      {/* Navigation Buttons */}
       <div style={{ marginTop: "16px" }}>
         {stepIndex > 0 && <button onClick={prevStep}>Back</button>}
         {stepIndex < steps.length - 1 && (
           <button
             onClick={nextStep}
             disabled={!steps[stepIndex].isValid}
-            style={{ marginLeft: 8 }}
-          >
+            style={{ marginLeft: 8 }}>
             Next
           </button>
         )}
         {stepIndex === steps.length - 1 && (
           <button
             onClick={() => {
-              safeSet(formData);
-              navigate("/quiz");
+              safeSet(formData)
+              navigate("/quiz")
             }}
-            style={{ marginLeft: 8 }}
-          >
+            style={{ marginLeft: 8 }}>
             Start Quiz
           </button>
         )}
       </div>
+
+      {/* Progress Indicator */}
+      <div style={{ marginTop: "20px" }}>
+        Step {stepIndex + 1} of {steps.length}
+      </div>
     </div>
-  );
+  )
 }

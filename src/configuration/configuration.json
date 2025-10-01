@@ -1,6 +1,6 @@
 {
     "free":{
-        "prev":false,
+        "previous":false,
         "retry":0,
         "local":true,
         "db":false,
@@ -26,7 +26,7 @@
         "quizDays":["Weekdays"]
     },
      "basic":{
-        "prev":false,
+        "previous":false,
         "retry":1,
         "local":true,
         "db":true,
@@ -52,7 +52,7 @@
         "quizDays":["Weekdays"]
     },
      "premium":{
-        "prev":true,
+        "previous":true,
         "retry":3,
         "local":true,
         "db":true,

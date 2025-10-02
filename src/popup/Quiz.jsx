@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import ScoreCard from "src/components/ScoreCard"
+import apiService from "src/service/apiService"
 
 // import ScoreCard from "src/components/ScoreCard"
 
@@ -50,17 +51,25 @@ export default function Quiz() {
   const [feedback, setFeedback] = useState(null)
   const [answers, setAnswers] = useState({})
   const [isCompletedQuiz, setIsCompletedQuiz] = useState(false)
-  const [userAnswers, setUserAnswers] = useState({})
+  const [userAnswers, setUserAnswers] = useState({});
+  // const [questions, setQuestions] = useState({})
   const {
     plans: { previous }
   } = useSelector((state) => state.plan)
-  // console.log("showUpgrade", showUpgrade)
 
-  // const PrevWithWrapper = WrapperHOC(ScoreCard)
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        console.log("QUIZ COMPLETED")
+        const data = await apiService({ method: "GET", url: "/ai/get-questions/yutfytfvvy" })
+        // setUser(data)
+      } catch (err) {
+        console.error("Failed to fetch user:", err)
+      }
+    }
 
-  //monday,isCompleted - chrome.local.storage;
-  //
-  // const tierInfo = useSelector((state) => state.tier)
+    fetchUser()
+  }, [])
 
   useEffect(() => {
     ;(async () => {

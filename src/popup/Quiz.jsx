@@ -11,21 +11,6 @@ import WrapperHOC from "../hoc/WrapperHOC"
 import { getTodayKey, getWeekRange } from "../utils/date"
 import { loadData, saveData } from "../utils/storage"
 
-const questions = [
-  {
-    q: "What is 2 + 2?",
-    opts: ["3", "4", "5"],
-    answer: "4",
-    reason: "Because 2 added to 2 equals 4."
-  },
-  {
-    q: "What is the capital of France?",
-    opts: ["Paris", "London", "Berlin"],
-    answer: "Paris",
-    reason: "Paris is the official capital city of France."
-  }
-]
-
 const quote = {
   gif: "https://img.freepik.com/free-vector/goal-achievement-teamwork-business-concept-career-growth-cooperation-development-project_107791-29.jpg?semt=ais_hybrid&w=740&q=80",
   meme: "Just a rough day in coding does not mean u can able to do it",
@@ -34,210 +19,128 @@ const quote = {
   type: "meme"
 }
 
-{
-  // monday: {
-  //   isCompleted: true,
-  //   isStarted: true,
-  //   noOfQs:4,
-  //   correctAnswer:[1,2,4],
-  //   wrongAnswer:[3],
-  //   questions:[],
-  // }
-}
-
 export default function Quiz() {
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(0)
   const [score, setScore] = useState(0)
-  const [feedback, setFeedback] = useState(null)
-  const [answers, setAnswers] = useState({})
+  const [questions, setQuestions] = useState([])
   const [isCompletedQuiz, setIsCompletedQuiz] = useState(false)
-  const [userAnswers, setUserAnswers] = useState({});
-  // const [questions, setQuestions] = useState({})
   const {
     plans: { previous }
-  } = useSelector((state) => state.plan)
+  } = useSelector((state) => state.plan);
+  console.log("previous",previous);
+
+  const fetchQuestion = async () => {
+    try {
+      let {
+        data: { questions }
+      } = await apiService({
+        method: "GET",
+        url: "/ai/get-questions/yutfytfvvy"
+      })
+      await questions?.forEach((ele) => {
+        ele.attended = false
+        ele.selectedAnswer = null
+        ele.isCorrect = false
+      })
+      setQuestions(questions);
+
+    } catch (err) {
+      console.error("Failed to fetch user:", err)
+    }
+  };
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        console.log("QUIZ COMPLETED")
-        const data = await apiService({ method: "GET", url: "/ai/get-questions/yutfytfvvy" })
-        // setUser(data)
-      } catch (err) {
-        console.error("Failed to fetch user:", err)
-      }
-    }
-
-    fetchUser()
+      fetchQuestion()
   }, [])
 
-  useEffect(() => {
-    ;(async () => {
-      const saved = await loadData("quizData")
-      if (saved) {
-        const dayKey = getTodayKey()
-        const savedDay = saved.recap?.[dayKey]
-        if (savedDay?.answers) {
-          setUserAnswers(savedDay.answers)
+  const handleAnswer = (opt) => {
+  const isCorrect = opt.id === questions[step].correctOptionId;
 
-          // restore feedback if user already answered current step
-          if (savedDay.answers[step]) {
-            setFeedback(savedDay.answers[step])
-          }
-        }
-      }
-    })()
-  }, [])
+  setQuestions((prev) => {
+    const newQuestions = [...prev]; // shallow copy of array
+    newQuestions[step] = {
+      ...newQuestions[step], // copy the object at that index
+      attended: true,
+      selectedAnswer: opt.id,
+      isCorrect
+    };
+    return newQuestions;
+  });
 
-  const handleAnswer = async (opt) => {
-    const isCorrect = opt === questions[step - 1].answer
-
-    setScore((prev) => (isCorrect ? prev + 1 : prev))
-
-    setFeedback({
-      isCorrect,
-      selectedAnswer: opt,
-      correctAnswer: questions[step - 1].answer,
-      reason: questions[step - 1].reason
-    })
-
-    setUserAnswers((prev) => ({
-      ...prev,
-      [step]: {
-        selected: opt,
-        isCorrect,
-        correctAnswer: questions[step - 1].answer,
-        reason: questions[step - 1].reason
-      }
-    }))
-
-    const prevData = (await loadData("quizData")) || {}
-    const weekRange = getWeekRange()
-    const dayKey = getTodayKey()
-
-    const prevDay = prevData?.recap?.[dayKey] || {
-      isCompleted: false,
-      isStarted: true,
-      noOfQs: questions.length,
-      answers: {}, // 🔥 store all here
-      questions
-    }
-    // debugger
-    const answers = {
-      ...prevDay.answers,
-      [step]: {
-        selected: opt,
-        isCorrect,
-        correctAnswer: questions[step - 1].answer,
-        reason: questions[step - 1].reason
-      }
-    }
-
-    const quizData = {
-      date: weekRange,
-      recap: {
-        ...prevData.recap,
-        [dayKey]: {
-          ...prevDay,
-          answers
-        }
-      }
-    }
-
-    saveData("quizData", quizData)
-  }
+  setScore((prev) => (isCorrect ? prev + 1 : prev));
+};
 
   const goNext = () => {
-    if (step < questions.length) {
-      const nextStep = step + 1
-      setStep(nextStep)
-      setFeedback(userAnswers[nextStep] || null) // restore feedback
-    } else {
-      setIsCompletedQuiz(true)
-    }
+    console.log({"step":step,"questions":questions.length})
+    if (step < questions.length-1) setStep((prev) => prev + 1)
+    else setIsCompletedQuiz(true)
   }
-
-  function goPrev() {
-    if (step > 1) {
-      const prevStep = step - 1
-      setStep(prevStep)
-      setFeedback(userAnswers[prevStep] || null) // restore feedback
-    }
-  }
+  const goPrev = () => setStep((prev) => prev - 1)
 
   function Prev() {
     return (
       previous &&
-      step - 1 > 0 && (
-        <>
-          <button
-            onClick={goPrev}
-            style={{
-              marginTop: "8px",
-              marginLeft: "3px",
-              padding: "8px 16px",
-              background: "#C1856D",
-              color: "white",
-              border: "none",
-              borderRadius: "4px",
-              cursor: "pointer"
-            }}>
-            {step == questions.length ? "Complete the quiz" : "Next"}
-          </button>
-        </>
+      step > 0 && (
+        <button
+          onClick={goPrev}
+          style={{
+            marginTop: "8px",
+            marginLeft: "3px",
+            padding: "8px 16px",
+            background: "orange",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer"
+          }}>
+          {"Previous"}
+        </button>
       )
     )
   }
 
-  // console.log(feedback, userAnswers)
-
   return (
     <div>
-      {!isCompletedQuiz ? (
+      {questions.length && !isCompletedQuiz ? (
         <>
-          <QuizCard
-            question={questions[step - 1].q}
-            options={questions[step - 1].opts}
-            onAnswer={handleAnswer}
-            disabled={!!feedback} // prevent multiple clicks after answering
-            selectedAnswer={feedback?.selectedAnswer}
-            correctAnswer={questions[step - 1].answer}
-          />
-          {feedback && (
+          <QuizCard question={questions[step]} onAnswer={handleAnswer} />
+          {questions[step]?.attended && (
             <div
               style={{
                 marginTop: "16px",
                 padding: "12px",
-                border: `1px solid ${feedback.isCorrect ? "green" : "red"}`,
+                border: `1px solid ${questions[step].isCorrect ? "green" : "red"}`,
                 borderRadius: "6px",
-                backgroundColor: feedback.isCorrect ? "#e6ffe6" : "#ffe6e6"
+                backgroundColor: questions[step].isCorrect
+                  ? "#e6ffe6"
+                  : "#ffe6e6"
               }}>
               <p>
-                {feedback.isCorrect ? "✅ Correct!" : "❌ Wrong!"} <br />
-                The correct answer is: <strong>{feedback.correctAnswer}</strong>
+                {questions[step].isCorrect ? "✅ Correct!" : "❌ Wrong!"} <br />
+                The correct answer is:{" "}
+                <strong>{questions[step]["options"].filter((ele)=>ele.id == questions[step]['correctOptionId'])[0]['text']}</strong>
               </p>
               <p>
-                <em>Reason: {feedback.reason}</em>
+                <em>Reason: {questions[step].explanation}</em>
               </p>
               <button
                 onClick={goNext}
                 style={{
                   marginTop: "8px",
                   padding: "8px 16px",
-                  background: feedback.isCorrect ? "green" : "red",
+                  background: questions[step].isCorrect ? "green" : "red",
                   color: "white",
                   border: "none",
                   borderRadius: "4px",
                   cursor: "pointer"
                 }}>
-                {step == questions.length ? "Complete the quiz" : "Next"}
+                {step == questions.length-1 ? "Complete the quiz" : "Next"}
               </button>
-
-              {/* {Prev()} */}
             </div>
           )}
           {<></>}
-          <StepNav current={step} total={questions.length} />
+          {Prev()}
+          <StepNav current={step + 1} total={questions.length} />
         </>
       ) : (
         <>

@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
+import ScoreCard from "src/components/ScoreCard"
+
+// import ScoreCard from "src/components/ScoreCard"
+
 import QuizCard from "../components/QuizCard"
 import StepNav from "../components/StepNav"
+import WrapperHOC from "../hoc/WrapperHOC"
 import { getTodayKey, getWeekRange } from "../utils/date"
 import { loadData, saveData } from "../utils/storage"
 
@@ -11,12 +16,6 @@ const questions = [
     opts: ["3", "4", "5"],
     answer: "4",
     reason: "Because 2 added to 2 equals 4."
-  },
-  {
-    q: "What is the capital of France?",
-    opts: ["Paris", "London", "Berlin"],
-    answer: "Paris",
-    reason: "Paris is the official capital city of France."
   },
   {
     q: "What is the capital of France?",
@@ -33,8 +32,6 @@ const quote = {
     "even though u can able to do it, does not mean it can be done by everyone",
   type: "meme"
 }
-
-
 
 {
   // monday: {
@@ -55,8 +52,11 @@ export default function Quiz() {
   const [isCompletedQuiz, setIsCompletedQuiz] = useState(false)
   const [userAnswers, setUserAnswers] = useState({})
   const {
-  plans: { previous }
-} = useSelector((state) => state.plan)
+    plans: { previous }
+  } = useSelector((state) => state.plan)
+  // console.log("showUpgrade", showUpgrade)
+
+  // const PrevWithWrapper = WrapperHOC(ScoreCard)
 
   //monday,isCompleted - chrome.local.storage;
   //
@@ -223,27 +223,20 @@ export default function Quiz() {
                 }}>
                 {step == questions.length ? "Complete the quiz" : "Next"}
               </button>
+
               {/* {Prev()} */}
             </div>
           )}
-          {
-            <>
-              
-            </>
-          }
+          {<></>}
           <StepNav current={step} total={questions.length} />
         </>
       ) : (
         <>
-          {/* <ShowUpgrade /> */}
-          <div>Score Card</div>
-          <img
-            src={quote.gif}
-            alt="Description of image"
-            height={200}
-            width="100%"
+          <ScoreCard
+            scoreCard={score}
+            quote={quote}
+            access={{ key: "showUpgrade", skip: false }}
           />
-          {quote.type ? quote.quote : quote.meme}
         </>
       )}
     </div>

@@ -2,8 +2,7 @@ import { createSlice } from "@reduxjs/toolkit";
 import Set from "lodash/set"
 
 const initialState ={
-    tier:"basic",
-    plan:"basic",
+    tier:"free",
     expired:false,
     active:true,
     loggedIn:{
